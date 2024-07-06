@@ -3,8 +3,9 @@ uuid = "c20f9b96-66de-4231-bbc8-363008277063"
 authors = ["Andrew Palski"]
 version = "1.0.0-DEV"
 
-[compat]
-julia = "1.6.7"
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+OrbitPropagationLibrarySOFA = "38b9e004-e2fa-4648-aa91-337faf7b69aa"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
