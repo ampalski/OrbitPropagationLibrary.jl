@@ -9,6 +9,7 @@ OrbitPropagationLibrarySOFA = "38b9e004-e2fa-4648-aa91-337faf7b69aa"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+StaticArrays = "1"
 OrbitPropagationLibrarySOFA = "0.1"
 
 [extras]
