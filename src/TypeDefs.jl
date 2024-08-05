@@ -7,7 +7,7 @@ abstract type OplOut end
 
 export Cart_InitialState
 struct Cart_InitialState <: InitialState
-    cartState::SVector{6,Float64}
+    state::SVector{6,Float64}
     epoch::JulianDate
     frame::Symbol
 end
@@ -40,7 +40,7 @@ export BaseOplOut
 # propagator (if any), -1 produces only the final values, other positive values
 # give the timestep in seconds
 struct BaseOplOut <: OplOut
-    Δt::Real
+    Δt::Float64
     outputs::Vector{Symbol}
     frame::Symbol
     finalTime::JulianDate
@@ -61,7 +61,7 @@ function build_base_output(
             error("$(output) is not a valid output selection.")
         end
     end
-    return BaseOplOut(Δt, outputs, frame, finalTime)
+    return BaseOplOut(Float64(Δt), outputs, frame, finalTime)
 end
 
 export TwoBody_OplIn

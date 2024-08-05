@@ -4,14 +4,15 @@ authors = ["Andrew Palski"]
 version = "1.0.0-DEV"
 
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 OrbitPropagationLibrarySOFA = "38b9e004-e2fa-4648-aa91-337faf7b69aa"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 DifferentialEquations = "7"
-StaticArrays = "1"
 OrbitPropagationLibrarySOFA = "0.2"
+StaticArrays = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
