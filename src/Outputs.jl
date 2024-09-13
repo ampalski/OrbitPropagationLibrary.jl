@@ -4,18 +4,21 @@
 function constructoutput(
     rf::AbstractVector,
     vf::AbstractVector,
+    T::AbstractVector,
     output::OplOut,
 )
     # Initialize data frame
     df = DataFrame()
+    df[!, :time] = Float64[]
     for col in output.outputs
         df[!, col] = _getoutputtype(col)
     end
 
     # Build each data type
-    #TODO: loop over time first, add row by row
-    row = [_convertoutput(rf, vf, col) for col in output.outputs]
-    push!(df, row)
+    for i in eachindex(T)
+        row = [T[i], (_convertoutput(rf[i], vf[i], col) for col in output.outputs)...]
+        push!(df, row)
+    end
     return df
 end
 

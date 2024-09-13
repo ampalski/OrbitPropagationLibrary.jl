@@ -12,19 +12,36 @@ function propagate(input::TwoBody_OplIn)
         t0 = input.state0.epoch
     end
 
-    dt = 86400.0 * ((tf.epoch[1] - t0.epoch[1]) + (tf.epoch[2] - t0.epoch[2]))
-    if dt < 0
+    totalTime = 86400.0 * ((tf.epoch[1] - t0.epoch[1]) + (tf.epoch[2] - t0.epoch[2]))
+    if totalTime < 0
         error("Output time is before input time")
     end
 
     # Convert input to whatever Universal expects
     # TODO: convert frames as needed
-    # TODO: use the dt in the output, and loop over to get intermediate points
-    rf, vf = universalkepler(input.state0.state[1:3],
-        input.state0.state[4:6], dt, μ)
+    if input.output.Δt > 0
+        dt = input.output.Δt
+        T = collect(dt:dt:totalTime)
+        if T[end] != totalTime
+            push!(T, totalTime)
+        end
+    else
+        T = [totalTime]
+    end
+    rf = Vector{Vector{Float64}}()
+    vf = Vector{Vector{Float64}}()
+    r = input.state0.state[1:3]
+    v = input.state0.state[4:6]
+    for i in eachindex(T)
+        dt = i == 1 ? T[1] : T[i] - T[i-1]
+
+        r, v = universalkepler(r, v, dt, μ)
+        push!(rf, r)
+        push!(vf, v)
+    end
 
     # Construct output
-    return constructoutput(rf, vf, input.output)
+    return constructoutput(rf, vf, T, input.output)
 
     # return [rf; vf]
 end

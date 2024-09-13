@@ -56,7 +56,7 @@ function mean_to_hyperbolic(meanAnom, e)
 end
 
 export state_to_classical
-function state_to_classical(r, v)
+function state_to_classical(r::AbstractVector, v::AbstractVector)
     rn = norm(r)
     vn = norm(v)
     h = cross(r, v)
