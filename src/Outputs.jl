@@ -42,8 +42,40 @@ function _convertoutput(rf, vf, type)
         return SA[vf...]
     elseif type == :state
         return SA[vcat(rf, vf)...]
+    elseif type == :x
+        return rf[1]
+    elseif type == :y
+        return rf[2]
+    elseif type == :z
+        return rf[3]
+    elseif type == :vx
+        return vf[1]
+    elseif type == :vy
+        return vf[2]
+    elseif type == :vz
+        return vf[3]
+    elseif type == :coe || type == :sma || type == :ecc || type == :inc ||
+           type == :Ω || type == :ω || type == :M || type == :ν
+        coes = state_to_classical(rf, vf)
+        if type == :coe
+            return coes
+        elseif type == :sma
+            return coes[1]
+        elseif type == :ecc
+            return coes[2]
+        elseif type == :inc
+            return coes[3]
+        elseif type == :Ω
+            return coes[4]
+        elseif type == :ω
+            return coes[5]
+        elseif type == :M
+            return coes[6]
+        elseif type == :ν
+            return coes[7]
+        end
     end
-    #TODO: Add the rest
+
 end
 
 # const validOutputs = [:x, :y, :z, :vx, :vy, :vz, :state, :pos, :vel, :coe,
