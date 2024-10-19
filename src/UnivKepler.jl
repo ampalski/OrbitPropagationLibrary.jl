@@ -1,4 +1,3 @@
-#TODO: refactor with static vectors
 """
     (newPosition, newVelocity) = universalkepler(r0, v0, dt, mu)
 
@@ -11,8 +10,8 @@ Propagate an orbit state according to 2-body dynamics
 - `mu`: Gravitational parameter, with units consistent with the other inputs
 """
 function universalkepler(
-    r0::AbstractVector,
-    v0::AbstractVector,
+    r0::SVector{3,Float64},
+    v0::SVector{3,Float64},
     dt::Float64,
     mu::Float64,
 )
@@ -42,16 +41,16 @@ function universalkepler(
                       (dot(r0, v0) + sign(dt) * sqrt(-mu * a) * (1 - r0n * alpha)))
     end
 
-    Chi = 999
+    Chi = 999.0
     ktr = 0
-    c2 = 0
-    c3 = 0
-    Psi = 0
-    r = 0
+    c2 = 0.0
+    c3 = 0.0
+    Psi = 0.0
+    r = 0.0
 
     while true
         Psi = ChiOld * ChiOld * alpha
-        (c2, c3) = Findc2c3(Psi)
+        (c2, c3) = _findc2c3(Psi)
         r = ChiOld^2 * c2 + temp * ChiOld * (1 - Psi * c3) + r0n * (1 - Psi * c2)
         dChir = sqrt(mu) * dt - ChiOld^3 * c3 -
                 temp * ChiOld^2 * c2 - r0n * ChiOld * (1 - Psi * c3)
@@ -78,7 +77,7 @@ function universalkepler(
 
 end
 
-function Findc2c3(Psi)
+function _findc2c3(Psi)
 
     if Psi > 1e-6
         rtPsi = sqrt(Psi)

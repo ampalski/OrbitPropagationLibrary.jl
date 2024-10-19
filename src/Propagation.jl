@@ -28,10 +28,10 @@ function propagate(input::TwoBody_OplIn)
     else
         T = [totalTime]
     end
-    rf = Vector{Vector{Float64}}()
-    vf = Vector{Vector{Float64}}()
-    r = input.state0.state[1:3]
-    v = input.state0.state[4:6]
+    rf = Vector{SVector{3,Float64}}()
+    vf = Vector{SVector{3,Float64}}()
+    r = SA[input.state0.state[1:3]...]
+    v = SA[input.state0.state[4:6]...]
     for i in eachindex(T)
         dt = i == 1 ? T[1] : T[i] - T[i-1]
 
