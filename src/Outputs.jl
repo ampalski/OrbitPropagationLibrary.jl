@@ -1,12 +1,14 @@
-# TODO: accept a state vector, it's frame, and the output request and frame
+# accept a state vector, it's frame, and the output request and frame
 # Covert to the desired elements, stash into a DataFrame
 
 function constructoutput(
     rf::AbstractVector,
     vf::AbstractVector,
     T::AbstractVector,
-    output::OplOut,
+    input::OplIn,
 )
+    output = input.output
+    jd0 = input.state0.epoch
     # Initialize data frame
     df = DataFrame()
     df[!, :time] = Float64[]
@@ -16,7 +18,17 @@ function constructoutput(
 
     # Build each data type
     for i in eachindex(T)
-        row = [T[i], (_convertoutput(rf[i], vf[i], col) for col in output.outputs)...]
+        if output.frame != :J2000
+            #make and r and v, jd on the time
+            jd = JDate(SA[jd0.epoch[1], (jd0.epoch[2]+T[i]/86400.0)], jd0.system)
+            converted_state = convert_state([rf[i]; vf[i]], :J2000, output.frame, jd)
+            r = converted_state[1:3]
+            v = converted_state[4:6]
+        else
+            r = rf[i]
+            v = vf[i]
+        end
+        row = [T[i], (_convertoutput(r, v, col) for col in output.outputs)...]
         push!(df, row)
     end
     return df

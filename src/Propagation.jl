@@ -18,7 +18,6 @@ function propagate(input::TwoBody_OplIn)
     end
 
     # Convert input to whatever Universal expects
-    # TODO: convert frames as needed
     if input.output.Δt > 0
         dt = input.output.Δt
         T = collect(dt:dt:totalTime)
@@ -32,6 +31,11 @@ function propagate(input::TwoBody_OplIn)
     vf = Vector{SVector{3,Float64}}()
     r = SA[input.state0.state[1:3]...]
     v = SA[input.state0.state[4:6]...]
+    if input.state0.frame != :J2000
+        converted_state = convert_state([r; v], input.state0.frame, :J2000, t0)
+        r = SA[converted_state[1:3]...]
+        v = SA[converted_state[4:6]...]
+    end
     for i in eachindex(T)
         dt = i == 1 ? T[1] : T[i] - T[i-1]
 
@@ -41,7 +45,7 @@ function propagate(input::TwoBody_OplIn)
     end
 
     # Construct output
-    return constructoutput(rf, vf, T, input.output)
+    return constructoutput(rf, vf, T, input)
 
     # return [rf; vf]
 end
