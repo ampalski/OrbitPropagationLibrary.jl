@@ -75,4 +75,25 @@ function build_twobody_input(state0::InitialState, output::OplOut)
     return TwoBody_OplIn(state0, output)
 end
 
+export NumericalOptions
+struct NumericalOptions
+    non_spherical::Bool
+    third_body_moon::Bool
+    third_body_sun::Bool
+    thrust::Bool
+    solar_radiation_pressure::Bool
+    drag::Bool
+end
+
+#TODO: Need to fill out the options struct and build a constructor
+
+export Numerical_OplIn
+struct Numerical_OplIn <: OplIn
+    state0::InitialState
+    options::NumericalOptions
+    output::OplOut
+end
+
+#TODO: Need a constructer/parser for numerical-oplin
+
 
