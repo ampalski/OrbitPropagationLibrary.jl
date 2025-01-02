@@ -85,7 +85,23 @@ struct NumericalOptions
     drag::Bool
 end
 
-#TODO: Need to fill out the options struct and build a constructor
+export build_numerical_options
+function build_numerical_options(;
+    use_non_spherical::Bool=false,
+    use_third_body_sun::Bool=false,
+    use_third_body_moon::Bool=false,
+    use_solar_radiation_pressure::Bool=false,
+    use_drag::Bool=false,
+    use_thrust::Bool=false,
+)
+    # For any options turned on, check that the corresponding settings are
+    # in place
+
+    # Build the struct
+    return NumericalOptions(use_non_spherical, use_third_body_moon,
+        use_third_body_sun, use_thrust,
+        use_solar_radiation_pressure, use_drag)
+end
 
 export Numerical_OplIn
 struct Numerical_OplIn <: OplIn
@@ -94,6 +110,12 @@ struct Numerical_OplIn <: OplIn
     output::OplOut
 end
 
-#TODO: Need a constructer/parser for numerical-oplin
-
+export build_numerical_input
+function build_numerical_input(
+    state0::InitialState,
+    options::NumericalOptions,
+    output::OplOut,
+)
+    return Numerical_OplIn(state0, options, output)
+end
 

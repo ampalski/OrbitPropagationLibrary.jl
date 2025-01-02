@@ -92,7 +92,7 @@ function propagate(input::Numerical_OplIn)
     # end
     # should be able to use ODEProblem to directly get the times I want
     ode_t = (0, totalTime)
-    opts = [input.state0.epoch, input.options]
+    opts = (input.state0.epoch, input.options)
     prob = ODEProblem(force_model, [r; v], ode_t, opts)
     # sol = solve(prob, Tsit5(), reltol=1e-12, abstol=1e-12, saveat=dt)
     sol = solve(prob, Tsit5(), reltol=1e-12, abstol=1e-12).(T)

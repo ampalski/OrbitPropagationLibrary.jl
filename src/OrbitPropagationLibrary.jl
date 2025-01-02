@@ -12,7 +12,5 @@ include("OrbitalElements.jl")
 include("Propagation.jl")
 
 const μ = 3.986004415e5
-# for now, replace this with more accurate version (and maybe unitful version) 
-# once numeric is up TODO: 
 
 end
