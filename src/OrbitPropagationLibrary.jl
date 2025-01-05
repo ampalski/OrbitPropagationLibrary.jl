@@ -12,5 +12,7 @@ include("OrbitalElements.jl")
 include("Propagation.jl")
 
 const μ = 3.986004415e5
+const μMOON = 4902.799
+const μSUN = 1.32712428e11
 
 end
