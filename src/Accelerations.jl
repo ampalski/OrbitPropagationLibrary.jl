@@ -67,11 +67,13 @@ function sun_pos(JD)
     TTDB = ((JDTDB.epoch[1] - 2451545.0) + JDTDB.epoch[2]) / 36525
 
     ecliptic_longitude = 280.46 + 36000.771 * T
-    MSUN = 357.5288 + 35999.050957 * TTDB
-    ecliptic_longitude += (1.915 * sind(MSUN) + 0.02 * sind(2 * MSUN))
+    MSUN = 357.5277233 + 35999.05034 * TTDB
+    ecliptic_longitude += (1.914666471 * sind(MSUN) +
+                           0.019994643 * sind(2 * MSUN))
 
-    rsun = 1.00014 - 0.01671 * cosd(MSUN) - 0.00014 * cosd(2 * MSUN)
-    rsun *= 149597870.0
+    rsun = 1.000140612 - 0.016708617 * cosd(MSUN) -
+           0.000139589 * cosd(2 * MSUN)
+    rsun *= 149597870.7
     ecliptic_obl = 23.439291 - 0.01461 * TTDB
 
     r1 = rsun * cosd(ecliptic_longitude)
