@@ -37,3 +37,19 @@ end
 function norm(a::AbstractVector)
     return sqrt(dot(a, a))
 end
+
+function anglevec(r1::AbstractVector, r2::AbstractVector)
+    return acos(dot(r1, r2) / norm(r1) / norm(r2))
+end
+
+#Requires radians
+function Rx(angle::Real)
+
+
+    c = cos(angle)
+    s = sin(angle)
+
+    return [+1.0 0.0 0.0;
+        0.0 +c +s;
+        0.0 -s +c]
+end
