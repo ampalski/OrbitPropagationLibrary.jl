@@ -147,8 +147,12 @@ function moon_pos(JD)
          152 * cos(l + lp - 2 * D)
 
     # Position
-
     pos = rm * Rx(-epsilon) * [cos(λm) * cos(βm), sin(λm) * cos(βm), sin(βm)]
 
     return pos
+end
+
+export srpaccel
+function srpaccel()
+
 end

@@ -83,8 +83,12 @@ struct NumericalOptions
     thrust::Bool
     solar_radiation_pressure::Bool
     drag::Bool
+    area::Float64
+    mass::Float64
+    coefficient_of_radiation::Float64
 end
 
+#TODO: in the documentation for this function, need to include units
 export build_numerical_options
 function build_numerical_options(;
     use_non_spherical::Bool=false,
@@ -93,14 +97,19 @@ function build_numerical_options(;
     use_solar_radiation_pressure::Bool=false,
     use_drag::Bool=false,
     use_thrust::Bool=false,
+    area::Float64=1.0,
+    mass::Float64=1000.0,
+    coefficient_of_radiation::Float64=1.0,
 )
     # For any options turned on, check that the corresponding settings are
     # in place
 
     # Build the struct
-    return NumericalOptions(use_non_spherical, use_third_body_moon,
+    return NumericalOptions(
+        use_non_spherical, use_third_body_moon,
         use_third_body_sun, use_thrust,
-        use_solar_radiation_pressure, use_drag)
+        use_solar_radiation_pressure, use_drag,
+        area, mass, coefficient_of_radiation)
 end
 
 export Numerical_OplIn
