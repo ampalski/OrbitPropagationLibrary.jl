@@ -38,6 +38,10 @@ function norm(a::AbstractVector)
     return sqrt(dot(a, a))
 end
 
+function unit(a::AbstractVector)
+    return a ./ norm(a)
+end
+
 function anglevec(r1::AbstractVector, r2::AbstractVector)
     return acos(dot(r1, r2) / norm(r1) / norm(r2))
 end

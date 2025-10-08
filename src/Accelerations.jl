@@ -5,6 +5,11 @@ function force_model(x, p, t)
     opts = p[2]
     jd = JDate(SA[jd0.epoch[1], jd0.epoch[2]+t/86400.0], jd0.system)
 
+    if opts.third_body_sun || opts.solar_radiation_pressure
+        r_sun = sun_pos(jd)
+        r_sc_sun = r_sun - x[1:3]
+    end
+
     if opts.third_body_moon
         r_moon = moon_pos(jd)
         r_sc_moon = r_moon - x[1:3]
@@ -14,12 +19,14 @@ function force_model(x, p, t)
         accel += a_moon
     end
     if opts.third_body_sun
-        r_sun = sun_pos(jd)
-        r_sc_sun = r_sun - x[1:3]
         temp1 = norm(r_sc_sun)^3
         temp2 = norm(r_sun)^3
         a_sun = μSUN * (r_sc_sun ./ temp1 - r_sun ./ temp2)
         accel += a_sun
+    end
+    if opts.solar_radiation_pressure
+        a_srp = srpaccel(r_sc_sun, opts)
+        accel += a_srp
     end
 
     r = norm(x[1:3])
@@ -31,6 +38,7 @@ end
 
 
 #from Montenbruck & Gill's "Satellite Orbits"
+export sun_pos
 function sun_pos(JD)
     JDTDB = convert_jd(JD, :TDB)
     AS2RAD = 2.0 * pi / 360 / 3600
@@ -153,6 +161,14 @@ function moon_pos(JD)
 end
 
 export srpaccel
-function srpaccel()
-
+function srpaccel(r_sc_sun, opts)
+    # Check for umbra & penumbra conditions
+    # If umbra, return zeros
+    # If penumbra, return partial acceleration value
+    p_srp = 1367.0 / 3e8 # W*s/m3 
+    a_srp = -p_srp * opts.coefficient_of_radiation *
+            opts.area / opts.mass * AU^2 / norm(r_sc_sun)^3 * r_sc_sun
+    a_srp /= 1000 # convert to km
+    # doesn't match results on pg 606
+    return a_srp
 end
