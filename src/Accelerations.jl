@@ -183,16 +183,22 @@ function _shadowfraction(r, r_sun)
     # outer edge of the umbra cone
     y = REarth / sin(α_umb)
     umb_vert = tan(α_pen) * (y - horiz)
-    # check if beyond umbra cone
-    if horiz > y
-        return 0.5
-    end
     # check if inside umbra cone
     if vert < umb_vert
         return 0.0
     end
     # fractional shadow
-    return (vert - umb_vert) / (pen_vert - umb_vert)
+    # return (vert - umb_vert) / (pen_vert - umb_vert)
+    # Below version calculates occulting discs, from Montenbruck
+    a = asin(RSun / norm(r_sun - r))
+    b = asin(REarth / rn)
+    c = acos((-r' * r_sun - r) / (rn * norm(r_sun - r)))
+    x = (c^2 + a^2 - b^2) / (2 * c)
+    y = sqrt(a^2 - x^2)
+    A = a^2 * acos(x / a) + b^2 * acos((c - x) / b) - c * y
+    return 1 - A / (π * a^2)
+    #TODO: Worth checking the simple version against the occulting discs,
+    # and verify that the conditions on Montenbruck pg 83 hold true.
 end
 
 export srpaccel
