@@ -25,7 +25,7 @@ function force_model(x, p, t)
         accel += a_sun
     end
     if opts.solar_radiation_pressure
-        a_srp = srpaccel(r_sc_sun, opts)
+        a_srp = srpaccel(x[1:3], r_sun, opts)
         accel += a_srp
     end
 
@@ -160,15 +160,55 @@ function moon_pos(JD)
     return pos
 end
 
+function _shadowfraction(r, r_sun)
+    α_umb = 0.004609793064071904 #rad
+    α_pen = 0.004695061438837353
+
+    # Same side of earth as sun, no shadow
+    if r' * r_sun > 0
+        return 1.0
+    end
+    # simplified x-y coordinates
+    ξ = anglevec(r, -r_sun)
+    rn = norm(r)
+    horiz = rn * cos(ξ)
+    vert = rn * sin(ξ)
+    # outer edge of the penumbra region
+    x = REarth / sin(α_pen)
+    pen_vert = tan(α_pen) * (x + horiz)
+    # check if outside penumbra region
+    if vert > pen_vert
+        return 1.0
+    end
+    # outer edge of the umbra cone
+    y = REarth / sin(α_umb)
+    umb_vert = tan(α_pen) * (y - horiz)
+    # check if beyond umbra cone
+    if horiz > y
+        return 0.5
+    end
+    # check if inside umbra cone
+    if vert < umb_vert
+        return 0.0
+    end
+    # fractional shadow
+    return (vert - umb_vert) / (pen_vert - umb_vert)
+end
+
 export srpaccel
-function srpaccel(r_sc_sun, opts)
+function srpaccel(r, r_sun, opts)
     # Check for umbra & penumbra conditions
+    r_sc_sun = r_sun - r
+    shadow_val = _shadowfraction(r, r_sun)
     # If umbra, return zeros
-    # If penumbra, return partial acceleration value
+    if shadow_val == 0.0
+        return zeros(3)
+    end
     p_srp = 1367.0 / 3e8 # W*s/m3 
     a_srp = -p_srp * opts.coefficient_of_radiation *
             opts.area / opts.mass * AU^2 / norm(r_sc_sun)^3 * r_sc_sun
     a_srp /= 1000 # convert to km
-    # doesn't match results on pg 606
-    return a_srp
+    # TODO: doesn't match results on pg 606
+    return shadow_val * a_srp
+    # If penumbra, return partial acceleration value
 end
