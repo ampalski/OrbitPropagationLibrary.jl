@@ -57,3 +57,52 @@ function Rx(angle::Real)
         0.0 +c +s;
         0.0 -s +c]
 end
+
+function _shadowfraction(r, r_sun)
+    α_umb = 0.004609793064071904 #rad
+    α_pen = 0.004695061438837353
+
+    # Same side of earth as sun, no shadow
+    if r' * r_sun > 0
+        return 1.0
+    end
+    # simplified x-y coordinates
+    ξ = anglevec(r, -r_sun)
+    rn = norm(r)
+    horiz = rn * cos(ξ)
+    vert = rn * sin(ξ)
+    # outer edge of the penumbra region
+    x = REarth / sin(α_pen)
+    pen_vert = tan(α_pen) * (x + horiz)
+    # check if outside penumbra region
+    if vert > pen_vert
+        return 1.0
+    end
+    # outer edge of the umbra cone
+    y = REarth / sin(α_umb)
+    umb_vert = tan(α_pen) * (y - horiz)
+    # check if inside umbra cone
+    if vert < umb_vert
+        return 0.0
+    end
+    # fractional shadow
+    # return (vert - umb_vert) / (pen_vert - umb_vert)
+    # Below version calculates occulting discs, from Montenbruck
+    a = asin(RSun / norm(r_sun - r))
+    b = asin(REarth / rn)
+    c = acos((-r' * r_sun - r) / (rn * norm(r_sun - r)))
+    x = (c^2 + a^2 - b^2) / (2 * c)
+    y = sqrt(a^2 - x^2)
+    A = a^2 * acos(x / a) + b^2 * acos((c - x) / b) - c * y
+    return 1 - A / (π * a^2)
+    #TODO: Worth checking the simple version against the occulting discs,
+    # and verify that the conditions on Montenbruck pg 83 hold true.
+end
+
+function kronecker(a::Real, b::Real)
+    if a == b
+        return 1.0
+    else
+        return 0.0
+    end
+end

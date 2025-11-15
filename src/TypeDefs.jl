@@ -86,6 +86,8 @@ struct NumericalOptions
     area::Float64
     mass::Float64
     coefficient_of_radiation::Float64
+    degree::Int
+    order::Int
 end
 
 #TODO: in the documentation for this function, need to include units
@@ -100,6 +102,8 @@ function build_numerical_options(;
     area::Float64=1.0,
     mass::Float64=1000.0,
     coefficient_of_radiation::Float64=1.0,
+    degree::Int=20,
+    order::Int=20,
 )
     # For any options turned on, check that the corresponding settings are
     # in place
@@ -109,7 +113,7 @@ function build_numerical_options(;
         use_non_spherical, use_third_body_moon,
         use_third_body_sun, use_thrust,
         use_solar_radiation_pressure, use_drag,
-        area, mass, coefficient_of_radiation)
+        area, mass, coefficient_of_radiation, degree, order)
 end
 
 export Numerical_OplIn

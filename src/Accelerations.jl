@@ -28,6 +28,15 @@ function force_model(x, p, t)
         a_srp = srpaccel(x[1:3], r_sun, opts)
         accel += a_srp
     end
+    if opts.non_spherical
+        P = mod2j200076_matrix(jd)
+        N = tod2mod76_matrix(jd)
+        R = pef2tod76_matrix(jd)
+        W = itrf2pef76_matrix(jd)
+        pos_ecef = W' * R' * N' * P' * x[1:3]
+        a_nonsph = nonsph_accel(pos_ecef, opts.degree, opts.order)
+        accel += P * N * R * W * a_nonsph
+    end
 
     r = norm(x[1:3])
     a_twobody = -μ / r^3 * x[1:3]
@@ -160,46 +169,6 @@ function moon_pos(JD)
     return pos
 end
 
-function _shadowfraction(r, r_sun)
-    α_umb = 0.004609793064071904 #rad
-    α_pen = 0.004695061438837353
-
-    # Same side of earth as sun, no shadow
-    if r' * r_sun > 0
-        return 1.0
-    end
-    # simplified x-y coordinates
-    ξ = anglevec(r, -r_sun)
-    rn = norm(r)
-    horiz = rn * cos(ξ)
-    vert = rn * sin(ξ)
-    # outer edge of the penumbra region
-    x = REarth / sin(α_pen)
-    pen_vert = tan(α_pen) * (x + horiz)
-    # check if outside penumbra region
-    if vert > pen_vert
-        return 1.0
-    end
-    # outer edge of the umbra cone
-    y = REarth / sin(α_umb)
-    umb_vert = tan(α_pen) * (y - horiz)
-    # check if inside umbra cone
-    if vert < umb_vert
-        return 0.0
-    end
-    # fractional shadow
-    # return (vert - umb_vert) / (pen_vert - umb_vert)
-    # Below version calculates occulting discs, from Montenbruck
-    a = asin(RSun / norm(r_sun - r))
-    b = asin(REarth / rn)
-    c = acos((-r' * r_sun - r) / (rn * norm(r_sun - r)))
-    x = (c^2 + a^2 - b^2) / (2 * c)
-    y = sqrt(a^2 - x^2)
-    A = a^2 * acos(x / a) + b^2 * acos((c - x) / b) - c * y
-    return 1 - A / (π * a^2)
-    #TODO: Worth checking the simple version against the occulting discs,
-    # and verify that the conditions on Montenbruck pg 83 hold true.
-end
 
 export srpaccel
 function srpaccel(r, r_sun, opts)
@@ -217,4 +186,75 @@ function srpaccel(r, r_sun, opts)
     # TODO: doesn't match results on pg 606
     return shadow_val * a_srp
     # If penumbra, return partial acceleration value
+end
+
+function _factorial_term(l, m)
+    δk = m == 0 ? 1 : 2
+    temp = δk * (2 * l + 1)
+    for i in (l-m+1):(l+m)
+        temp /= i
+    end
+    return sqrt(temp)
+    #return factorial(l - m) * δk * (2 * l + 1) / factorial((l + m)))
+end
+
+export nonsph_accel
+function nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
+    lmax = degree
+    mmax = order
+    r = norm(pos)
+    V = spzeros(lmax + 3, mmax + 3)
+    W = spzeros(lmax + 3, mmax + 3)
+    V[1, 1] = REarth / r
+    W[1, 1] = 0.0
+
+    # Zonals
+    m = 0
+    Rr2 = V[1, 1] / r
+    V[2, 1] = Rr2 * pos[3] * REarth / r
+    for l in 2:lmax+1
+        V[l+1, 1] = (2 * l - 1) / (l) * pos[3] * Rr2 * V[l, 1]
+        V[l+1, 1] -= (l - 1) / l * Rr2 * REarth * V[l-1, 1]
+    end
+
+    # Tesserals and Sectorials
+    for m in 1:mmax+1
+        V[m+1, m+1] = (2 * m - 1) * (pos[1] * Rr2 * V[m, m] - pos[2] * Rr2 * W[m, m])
+        W[m+1, m+1] = (2 * m - 1) * (pos[1] * Rr2 * W[m, m] + pos[2] * Rr2 * V[m, m])
+        for l in m+1:lmax+1
+            V[l+1, m+1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * V[l, m+1]
+            V[l+1, m+1] -= (l + m - 1) / (l - m) * Rr2 * REarth * V[l-1, m+1]
+
+            W[l+1, m+1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * W[l, m+1]
+            W[l+1, m+1] -= (l + m - 1) / (l - m) * Rr2 * REarth * W[l-1, m+1]
+        end
+    end
+
+    #Calculate accelerations
+    ax = 0.0
+    ay = 0.0
+    az = 0.0
+
+    for m in mmax:-1:0 # backwards to try to fix precision stuff
+        for l in lmax:-1:m
+            # Grab and un-normalize the coefficients
+            norm = _factorial_term(l, m)
+            C = NormGravityModel_C[l+1, m+1] * norm
+            S = NormGravityModel_S[l+1, m+1] * norm
+
+            if m == 0
+                ax -= C * V[l+2, 2]
+                ay -= C * W[l+2, 2]
+                az -= (l + 1) * C * V[l+2, 1]
+            else
+                term = (l - m + 1) * (l - m + 2)
+                ax += 0.5 * ((-C * V[l+2, m+2] - S * W[l+2, m+2]) +
+                             term * (C * V[l+2, m] + S * W[l+2, m]))
+                ay += 0.5 * ((-C * W[l+2, m+2] + S * V[l+2, m+2]) +
+                             term * (-C * W[l+2, m] + S * V[l+2, m]))
+                az += (l - m + 1) * (-C * V[l+2, m+1] - S * W[l+2, m+1])
+            end
+        end
+    end
+    return μ / REarth^2 * [ax, ay, az]
 end
