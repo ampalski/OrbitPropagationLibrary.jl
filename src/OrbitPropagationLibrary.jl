@@ -11,7 +11,6 @@ include("Utils.jl")
 include("TypeDefs.jl")
 include("OrbitalElements.jl")
 include("Propagation.jl")
-include("testNonSph.jl")
 
 const μ = 3.986004415e5
 const μMOON = 4902.799

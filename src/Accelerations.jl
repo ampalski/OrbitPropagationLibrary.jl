@@ -25,7 +25,7 @@ function force_model(x, p, t)
         accel += a_sun
     end
     if opts.solar_radiation_pressure
-        a_srp = srpaccel(x[1:3], r_sun, opts)
+        a_srp = _srpaccel(x[1:3], r_sun, opts)
         accel += a_srp
     end
     if opts.non_spherical
@@ -34,7 +34,7 @@ function force_model(x, p, t)
         R = pef2tod76_matrix(jd)
         W = itrf2pef76_matrix(jd)
         pos_ecef = W' * R' * N' * P' * x[1:3]
-        a_nonsph = nonsph_accel(pos_ecef, opts.degree, opts.order)
+        a_nonsph = _nonsph_accel(pos_ecef, opts.degree, opts.order)
         accel += P * N * R * W * a_nonsph
     end
 
@@ -170,8 +170,8 @@ function moon_pos(JD)
 end
 
 
-export srpaccel
-function srpaccel(r, r_sun, opts)
+export _srpaccel
+function _srpaccel(r, r_sun, opts)
     # Check for umbra & penumbra conditions
     r_sc_sun = r_sun - r
     shadow_val = _shadowfraction(r, r_sun)
@@ -198,8 +198,8 @@ function _factorial_term(l, m)
     #return factorial(l - m) * δk * (2 * l + 1) / factorial((l + m)))
 end
 
-export nonsph_accel
-function nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
+export _nonsph_accel
+function _nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
     lmax = degree
     mmax = order
     r = norm(pos)

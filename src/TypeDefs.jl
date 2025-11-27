@@ -13,6 +13,24 @@ struct Cart_InitialState <: InitialState
 end
 
 export build_cartesian_state
+"""
+    state0 = build_cartesian_state(stateVec, epoch, frame)
+
+Builds an InitialState object for the `stateVec` specified at `epoch` in `frame`
+
+Allowable frames are: `:ITRF`, `:PEF`, `:TOD`, `:TEME`, `:MOD`, `:J2000`
+
+The input value for `epoch` is the Julian Date returned in two pieces, in the 
+usual SOFA manner, which is designed to preserve time resolution. The full 
+Julian Date is available as a single number by adding the two components of the
+vector.
+
+# Inputs
+* `state::AbstractVector`: 6-element vector cartesian state vector (position and velocity)
+* `epoch::JulianDate`: The Julian Date for the given state
+* `frame::Symbol`: The frame the state is specified in
+
+"""
 function build_cartesian_state(
     state::AbstractVector,
     epoch::JulianDate,
@@ -47,6 +65,36 @@ struct BaseOplOut <: OplOut
 end
 
 export build_base_output
+"""
+    output = build_base_output(Δt, outputs, frame, finalTime)
+
+Builds an OPLOut object for the given options.
+
+The `outputs` argument is a vector of the specific data points desired at each
+output timestep, specified as Symbols. Allowable options are currently: 
+* Cartesian positions: :x, :y, :z, :pos
+* Cartesian velocities: :vx, :vy, :vz, :vel
+* Cartesian state: :state
+* Classical orbital elements: :coe, :sma, :ecc, :inc, :Ω, :ω, :M, :ν (nu)
+
+Output timesteps are given every `Δt` from the initial state until `finalTime`.
+A value of `Δt=0` will use the default propagator timesteps.
+A value of `Δt=-1` will only output data at `finalTime`
+
+Allowable frames are: `:ITRF`, `:PEF`, `:TOD`, `:TEME`, `:MOD`, `:J2000`
+
+The input value for `epoch` is the Julian Date returned in two pieces, in the 
+usual SOFA manner, which is designed to preserve time resolution. The full 
+Julian Date is available as a single number by adding the two components of the
+vector.
+
+# Inputs
+* `Δt::Real`: Specify the timestep between output values
+* `outputs::Vector{Symbol}`: Specify the output data points.
+* `frame::Symbol`: Specify the frame the `outputs` are in.
+* `finalTime::JulianDate`: Specify the final time to propagate to.
+
+"""
 function build_base_output(
     Δt::Real,
     outputs::Vector{Symbol},
@@ -71,6 +119,20 @@ struct TwoBody_OplIn <: OplIn
 end
 
 export build_twobody_input
+"""
+    input = build_twobody(state0, output)
+
+Builds an OplIn object for the given settings.
+
+The three inputs are best created using the helper functions:
+* `state0` using `build_cartesian_state`
+* `output` using `build_base_output`
+
+# Inputs
+* `state0::InitialState`: Object describing time and state information at the beginning of propagation
+* `output::OplOut`: Object describing the desired output, including final propagation time and what data to return.
+
+"""
 function build_twobody_input(state0::InitialState, output::OplOut)
     return TwoBody_OplIn(state0, output)
 end
@@ -90,8 +152,27 @@ struct NumericalOptions
     order::Int
 end
 
-#TODO: in the documentation for this function, need to include units
+# in the documentation for this function, need to include units
 export build_numerical_options
+"""
+    options = build_numerical_options(; kwargs...)
+
+Builds a NumericalOptions object for the given key word options.
+
+# Inputs
+* `use_non_spherical::Bool=false`: If true, utilize terms up to `degree` and `order`
+* `use_third_body_sun::Bool=false`: Third body effects from the sun.
+* `use_third_body_moon::Bool=false`: Third body effects from the moon.
+* `use_solar_radiation_pressure=false`: If true, utilize `area`, `mass`, and `coefficient_of_radiation`
+* `use_drag::Bool=false`: Not currently implemented.
+* `use_thrust::Bool=false`: Not currently implemented.
+* `area::Float64=1.0`: Average area presented to solar flux, in m²
+* `mass:Float64=1000.0`: Mass of the spacecraft, in kg
+* `coefficient_of_radiation::Float64=1.0`: C_R term
+* `degree::Int=20`: Maximum degree of the geopotential model, up to 200
+* `order::Int=20`: Maximum order of the geopotential model, up to 200
+
+"""
 function build_numerical_options(;
     use_non_spherical::Bool=false,
     use_third_body_sun::Bool=false,
@@ -107,6 +188,19 @@ function build_numerical_options(;
 )
     # For any options turned on, check that the corresponding settings are
     # in place
+
+    if area < 0
+        error("Negative spacecraft areas are not possible")
+    end
+    if mass < 0
+        error("Negative spacecraft masses are not possible")
+    end
+    if degree < 0 || order < 0
+        error("Geopotential model degree and order must be non-negative")
+    end
+    if degree > 200 || order > 200
+        error("Geopotential model degree and order must be ≤ 200")
+    end
 
     # Build the struct
     return NumericalOptions(
@@ -124,6 +218,22 @@ struct Numerical_OplIn <: OplIn
 end
 
 export build_numerical_input
+"""
+    input = build_numerical_input(state0, options, output)
+
+Builds an OplIn object for the given settings.
+
+The three inputs are best created using the helper functions:
+* `state0` using `build_cartesian_state`
+* `options` using `build_numerical_options`
+* `output` using `build_base_output`
+
+# Inputs
+* `state0::InitialState`: Object describing time and state information at the beginning of propagation
+* `options::NumericalOptions`: Object describing the force model and spacecraft settings to use for propagation
+* `output::OplOut`: Object describing the desired output, including final propagation time and what data to return.
+
+"""
 function build_numerical_input(
     state0::InitialState,
     options::NumericalOptions,
