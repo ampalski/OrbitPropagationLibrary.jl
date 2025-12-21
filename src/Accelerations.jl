@@ -3,7 +3,9 @@ function force_model(x, p, t)
     accel = zeros(3)
     jd0 = p[1]
     opts = p[2]
-    jd = JDate(SA[jd0.epoch[1], jd0.epoch[2]+t/86400.0], jd0.system)
+    jd = JDate(SA[jd0.epoch[1], jd0.epoch[2] + t / 86400.0], jd0.system)
+    r_sun = zeros(3)
+    r_sc_sun = zeros(3)
 
     if opts.third_body_sun || opts.solar_radiation_pressure
         r_sun = sun_pos(jd)
@@ -45,7 +47,6 @@ function force_model(x, p, t)
     return SA[x[4:6]...; accel...]
 end
 
-
 #from Montenbruck & Gill's "Satellite Orbits"
 export sun_pos
 function sun_pos(JD)
@@ -59,7 +60,7 @@ function sun_pos(JD)
     M *= pi / 180
     λs = (6892 * sin(M) + 72 * sin(2 * M)) * AS2RAD
     λs += temp + M
-    rs = 1e6 * (149.619 - 2.499 * cos(M) - 0.021 * cos(2 * M))
+    rs = 1.0e6 * (149.619 - 2.499 * cos(M) - 0.021 * cos(2 * M))
 
     pos = rs * Rx(-epsilon) * [cos(λs), sin(λs), 0.0]
 
@@ -138,12 +139,12 @@ function moon_pos(JD)
 
     # Moon longitude
     λm = 22640.0 * sin(l) + 769 * sin(2 * l) -
-         4586 * sin(l - 2 * D) + 2370 * sin(2 * D) -
-         668 * sin(lp) - 412 * sin(2 * F) -
-         212 * sin(2 * l - 2 * D) - 206 * sin(l + lp - 2 * D) +
-         192 * sin(l + 2 * D) - 165 * sin(lp - 2D) +
-         148 * sin(l - lp) - 125 * sin(D) -
-         110 * sin(l + lp) - 55 * sin(2 * F - 2 * D)
+        4586 * sin(l - 2 * D) + 2370 * sin(2 * D) -
+        668 * sin(lp) - 412 * sin(2 * F) -
+        212 * sin(2 * l - 2 * D) - 206 * sin(l + lp - 2 * D) +
+        192 * sin(l + 2 * D) - 165 * sin(lp - 2D) +
+        148 * sin(l - lp) - 125 * sin(D) -
+        110 * sin(l + lp) - 55 * sin(2 * F - 2 * D)
     λm *= AS2RAD
     λm += L0
 
@@ -151,17 +152,17 @@ function moon_pos(JD)
     temp = 412 * sin(2 * F) + 541 * sin(lp)
     temp *= AS2RAD
     βm = 18520 * sin(F + λm - L0 + temp) -
-         526 * sin(F - 2 * D) + 44 * sin(l + F - 2 * D) -
-         31 * sin(F - l - 2D) - 25 * sin(F - 2 * l) -
-         23 * sin(lp + F - 2 * D) + 21 * sin(F - l) +
-         11 * sin(F - lp - 2 * D)
+        526 * sin(F - 2 * D) + 44 * sin(l + F - 2 * D) -
+        31 * sin(F - l - 2D) - 25 * sin(F - 2 * l) -
+        23 * sin(lp + F - 2 * D) + 21 * sin(F - l) +
+        11 * sin(F - lp - 2 * D)
     βm *= AS2RAD
 
     # Moon distance (in km)
     rm = 385000.0 - 20905 * cos(l) - 3699 * cos(2 * D - l) -
-         2956 * cos(2 * D) - 570 * cos(2 * l) + 246 * cos(2 * l - 2 * D) -
-         205 * cos(lp - 2 * D) - 171 * cos(l + 2 * D) -
-         152 * cos(l + lp - 2 * D)
+        2956 * cos(2 * D) - 570 * cos(2 * l) + 246 * cos(2 * l - 2 * D) -
+        205 * cos(lp - 2 * D) - 171 * cos(l + 2 * D) -
+        152 * cos(l + lp - 2 * D)
 
     # Position
     pos = rm * Rx(-epsilon) * [cos(λm) * cos(βm), sin(λm) * cos(βm), sin(βm)]
@@ -179,9 +180,9 @@ function _srpaccel(r, r_sun, opts)
     if shadow_val == 0.0
         return zeros(3)
     end
-    p_srp = 1367.0 / 3e8 # W*s/m3 
+    p_srp = 1367.0 / 3.0e8 # W*s/m3
     a_srp = -p_srp * opts.coefficient_of_radiation *
-            opts.area / opts.mass * AU^2 / norm(r_sc_sun)^3 * r_sc_sun
+        opts.area / opts.mass * AU^2 / norm(r_sc_sun)^3 * r_sc_sun
     a_srp /= 1000 # convert to km
     # TODO: doesn't match results on pg 606
     return shadow_val * a_srp
@@ -191,7 +192,7 @@ end
 function _factorial_term(l, m)
     δk = m == 0 ? 1 : 2
     temp = δk * (2 * l + 1)
-    for i in (l-m+1):(l+m)
+    for i in (l - m + 1):(l + m)
         temp /= i
     end
     return sqrt(temp)
@@ -209,24 +210,23 @@ function _nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
     W[1, 1] = 0.0
 
     # Zonals
-    m = 0
     Rr2 = V[1, 1] / r
     V[2, 1] = Rr2 * pos[3] * REarth / r
-    for l in 2:lmax+1
-        V[l+1, 1] = (2 * l - 1) / (l) * pos[3] * Rr2 * V[l, 1]
-        V[l+1, 1] -= (l - 1) / l * Rr2 * REarth * V[l-1, 1]
+    for l in 2:(lmax + 1)
+        V[l + 1, 1] = (2 * l - 1) / (l) * pos[3] * Rr2 * V[l, 1]
+        V[l + 1, 1] -= (l - 1) / l * Rr2 * REarth * V[l - 1, 1]
     end
 
     # Tesserals and Sectorials
-    for m in 1:mmax+1
-        V[m+1, m+1] = (2 * m - 1) * (pos[1] * Rr2 * V[m, m] - pos[2] * Rr2 * W[m, m])
-        W[m+1, m+1] = (2 * m - 1) * (pos[1] * Rr2 * W[m, m] + pos[2] * Rr2 * V[m, m])
-        for l in m+1:lmax+1
-            V[l+1, m+1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * V[l, m+1]
-            V[l+1, m+1] -= (l + m - 1) / (l - m) * Rr2 * REarth * V[l-1, m+1]
+    for m in 1:(mmax + 1)
+        V[m + 1, m + 1] = (2 * m - 1) * (pos[1] * Rr2 * V[m, m] - pos[2] * Rr2 * W[m, m])
+        W[m + 1, m + 1] = (2 * m - 1) * (pos[1] * Rr2 * W[m, m] + pos[2] * Rr2 * V[m, m])
+        for l in (m + 1):(lmax + 1)
+            V[l + 1, m + 1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * V[l, m + 1]
+            V[l + 1, m + 1] -= (l + m - 1) / (l - m) * Rr2 * REarth * V[l - 1, m + 1]
 
-            W[l+1, m+1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * W[l, m+1]
-            W[l+1, m+1] -= (l + m - 1) / (l - m) * Rr2 * REarth * W[l-1, m+1]
+            W[l + 1, m + 1] = (2 * l - 1) / (l - m) * pos[3] * Rr2 * W[l, m + 1]
+            W[l + 1, m + 1] -= (l + m - 1) / (l - m) * Rr2 * REarth * W[l - 1, m + 1]
         end
     end
 
@@ -239,20 +239,24 @@ function _nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
         for l in lmax:-1:m
             # Grab and un-normalize the coefficients
             norm = _factorial_term(l, m)
-            C = NormGravityModel_C[l+1, m+1] * norm
-            S = NormGravityModel_S[l+1, m+1] * norm
+            C = NormGravityModel_C[l + 1, m + 1] * norm
+            S = NormGravityModel_S[l + 1, m + 1] * norm
 
             if m == 0
-                ax -= C * V[l+2, 2]
-                ay -= C * W[l+2, 2]
-                az -= (l + 1) * C * V[l+2, 1]
+                ax -= C * V[l + 2, 2]
+                ay -= C * W[l + 2, 2]
+                az -= (l + 1) * C * V[l + 2, 1]
             else
                 term = (l - m + 1) * (l - m + 2)
-                ax += 0.5 * ((-C * V[l+2, m+2] - S * W[l+2, m+2]) +
-                             term * (C * V[l+2, m] + S * W[l+2, m]))
-                ay += 0.5 * ((-C * W[l+2, m+2] + S * V[l+2, m+2]) +
-                             term * (-C * W[l+2, m] + S * V[l+2, m]))
-                az += (l - m + 1) * (-C * V[l+2, m+1] - S * W[l+2, m+1])
+                ax += 0.5 * (
+                    (-C * V[l + 2, m + 2] - S * W[l + 2, m + 2]) +
+                        term * (C * V[l + 2, m] + S * W[l + 2, m])
+                )
+                ay += 0.5 * (
+                    (-C * W[l + 2, m + 2] + S * V[l + 2, m + 2]) +
+                        term * (-C * W[l + 2, m] + S * V[l + 2, m])
+                )
+                az += (l - m + 1) * (-C * V[l + 2, m + 1] - S * W[l + 2, m + 1])
             end
         end
     end

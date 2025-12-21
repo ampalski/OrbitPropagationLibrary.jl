@@ -7,7 +7,7 @@ abstract type OplOut end
 
 export Cart_InitialState
 struct Cart_InitialState <: InitialState
-    state::SVector{6,Float64}
+    state::SVector{6, Float64}
     epoch::JulianDate
     frame::Symbol
 end
@@ -32,14 +32,14 @@ vector.
 
 """
 function build_cartesian_state(
-    state::AbstractVector,
-    epoch::JulianDate,
-    frame::Symbol,
-)
+        state::AbstractVector,
+        epoch::JulianDate,
+        frame::Symbol,
+    )
     if !(frame in validFrames)
         error("Invalid coordinate frame provided.")
     end
-    if state isa SVector{6,Float64}
+    if state isa SVector{6, Float64}
         return Cart_InitialState(state, epoch, frame)
     end
 
@@ -50,8 +50,10 @@ function build_cartesian_state(
     return Cart_InitialState(SA[state...], epoch, frame)
 end
 
-const validOutputs = [:x, :y, :z, :vx, :vy, :vz, :state, :pos, :vel, :coe,
-    :sma, :ecc, :inc, :Ω, :ω, :M, :ν]
+const validOutputs = [
+    :x, :y, :z, :vx, :vy, :vz, :state, :pos, :vel, :coe,
+    :sma, :ecc, :inc, :Ω, :ω, :M, :ν,
+]
 
 export BaseOplOut
 # Δt governs how often output is produced. 0 uses any default values from the
@@ -96,11 +98,11 @@ vector.
 
 """
 function build_base_output(
-    Δt::Real,
-    outputs::Vector{Symbol},
-    frame::Symbol,
-    finalTime::JulianDate,
-)
+        Δt::Real,
+        outputs::Vector{Symbol},
+        frame::Symbol,
+        finalTime::JulianDate,
+    )
     if !(frame in validFrames)
         error("Invalid coordinate frame provided.")
     end
@@ -174,18 +176,18 @@ Builds a NumericalOptions object for the given key word options.
 
 """
 function build_numerical_options(;
-    use_non_spherical::Bool=false,
-    use_third_body_sun::Bool=false,
-    use_third_body_moon::Bool=false,
-    use_solar_radiation_pressure::Bool=false,
-    use_drag::Bool=false,
-    use_thrust::Bool=false,
-    area::Float64=1.0,
-    mass::Float64=1000.0,
-    coefficient_of_radiation::Float64=1.0,
-    degree::Int=20,
-    order::Int=20,
-)
+        use_non_spherical::Bool = false,
+        use_third_body_sun::Bool = false,
+        use_third_body_moon::Bool = false,
+        use_solar_radiation_pressure::Bool = false,
+        use_drag::Bool = false,
+        use_thrust::Bool = false,
+        area::Float64 = 1.0,
+        mass::Float64 = 1000.0,
+        coefficient_of_radiation::Float64 = 1.0,
+        degree::Int = 20,
+        order::Int = 20,
+    )
     # For any options turned on, check that the corresponding settings are
     # in place
 
@@ -207,7 +209,8 @@ function build_numerical_options(;
         use_non_spherical, use_third_body_moon,
         use_third_body_sun, use_thrust,
         use_solar_radiation_pressure, use_drag,
-        area, mass, coefficient_of_radiation, degree, order)
+        area, mass, coefficient_of_radiation, degree, order
+    )
 end
 
 export Numerical_OplIn
@@ -235,10 +238,9 @@ The three inputs are best created using the helper functions:
 
 """
 function build_numerical_input(
-    state0::InitialState,
-    options::NumericalOptions,
-    output::OplOut,
-)
+        state0::InitialState,
+        options::NumericalOptions,
+        output::OplOut,
+    )
     return Numerical_OplIn(state0, options, output)
 end
-

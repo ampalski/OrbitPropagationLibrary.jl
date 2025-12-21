@@ -28,8 +28,8 @@ function propagate(input::TwoBody_OplIn)
     else
         T = [totalTime]
     end
-    rf = Vector{SVector{3,Float64}}()
-    vf = Vector{SVector{3,Float64}}()
+    rf = Vector{SVector{3, Float64}}()
+    vf = Vector{SVector{3, Float64}}()
     r = SA[input.state0.state[1:3]...]
     v = SA[input.state0.state[4:6]...]
     if input.state0.frame != :J2000
@@ -38,7 +38,7 @@ function propagate(input::TwoBody_OplIn)
         v = SA[converted_state[4:6]...]
     end
     for i in eachindex(T)
-        dt = i == 1 ? T[1] : T[i] - T[i-1]
+        dt = i == 1 ? T[1] : T[i] - T[i - 1]
 
         r, v = universalkepler(r, v, dt, μ)
         push!(rf, r)
@@ -74,8 +74,8 @@ function propagate(input::Numerical_OplIn)
     else
         T = [totalTime]
     end
-    rf = Vector{SVector{3,Float64}}()
-    vf = Vector{SVector{3,Float64}}()
+    rf = Vector{SVector{3, Float64}}()
+    vf = Vector{SVector{3, Float64}}()
     r = SA[input.state0.state[1:3]...]
     v = SA[input.state0.state[4:6]...]
     if input.state0.frame != :J2000
@@ -95,7 +95,7 @@ function propagate(input::Numerical_OplIn)
     opts = (input.state0.epoch, input.options)
     prob = ODEProblem(force_model, [r; v], ode_t, opts)
     # sol = solve(prob, Tsit5(), reltol=1e-12, abstol=1e-12, saveat=dt)
-    sol = solve(prob, Tsit5(), reltol=1e-12, abstol=1e-12).(T)
+    sol = solve(prob, Tsit5(), reltol = 1.0e-12, abstol = 1.0e-12).(T)
     #need to test the saveat version against using the solution as a function
     for x in sol
         push!(rf, x[1:3])
