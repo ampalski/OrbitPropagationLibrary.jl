@@ -1,3 +1,4 @@
+export universalkepler
 """
     (newPosition, newVelocity) = universalkepler(r0, v0, dt, mu)
 
@@ -10,11 +11,11 @@ Propagate an orbit state according to 2-body dynamics
 - `mu`: Gravitational parameter, with units consistent with the other inputs
 """
 function universalkepler(
-    r0::SVector{3,Float64},
-    v0::SVector{3,Float64},
-    dt::Float64,
-    mu::Float64,
-)
+        r0::SVector{3, Float64},
+        v0::SVector{3, Float64},
+        dt::Float64,
+        mu::Float64,
+    )
 
     r0n = norm(r0)
     v0n = norm(v0)
@@ -37,8 +38,10 @@ function universalkepler(
     else #hyperbolic
         a = 1 / alpha
         ChiOld = sign(dt) * sqrt(-a)
-        ChiOld *= log(-2 * mu * alpha * dt /
-                      (dot(r0, v0) + sign(dt) * sqrt(-mu * a) * (1 - r0n * alpha)))
+        ChiOld *= log(
+            -2 * mu * alpha * dt /
+                (dot(r0, v0) + sign(dt) * sqrt(-mu * a) * (1 - r0n * alpha))
+        )
     end
 
     Chi = 999.0
@@ -53,10 +56,10 @@ function universalkepler(
         (c2, c3) = _findc2c3(Psi)
         r = ChiOld^2 * c2 + temp * ChiOld * (1 - Psi * c3) + r0n * (1 - Psi * c2)
         dChir = sqrt(mu) * dt - ChiOld^3 * c3 -
-                temp * ChiOld^2 * c2 - r0n * ChiOld * (1 - Psi * c3)
+            temp * ChiOld^2 * c2 - r0n * ChiOld * (1 - Psi * c3)
         Chi = ChiOld + dChir / r
 
-        if abs(Chi - ChiOld) < 1e-6 || ktr > 100
+        if abs(Chi - ChiOld) < 1.0e-6 || ktr > 100
             break
         end
 
@@ -79,12 +82,12 @@ end
 
 function _findc2c3(Psi)
 
-    if Psi > 1e-6
+    if Psi > 1.0e-6
         rtPsi = sqrt(Psi)
         c2 = (1 - cos(rtPsi)) / Psi
         c3 = (rtPsi - sin(rtPsi)) / sqrt(Psi^3)
     else
-        if Psi < -1e-6
+        if Psi < -1.0e-6
             rtPsi = sqrt(-Psi)
             c2 = (1 - cosh(rtPsi)) / Psi
             c3 = (sinh(rtPsi) - rtPsi) / sqrt((-Psi)^3)
@@ -96,4 +99,3 @@ function _findc2c3(Psi)
 
     return (c2, c3)
 end
-

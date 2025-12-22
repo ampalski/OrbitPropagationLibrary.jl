@@ -1,12 +1,12 @@
 # accept a state vector, it's frame, and the output request and frame
 # Covert to the desired elements, stash into a DataFrame
 
-function constructoutput(
-    rf::AbstractVector,
-    vf::AbstractVector,
-    T::AbstractVector,
-    input::OplIn,
-)
+function _constructoutput(
+        rf::AbstractVector,
+        vf::AbstractVector,
+        T::AbstractVector,
+        input::OplIn,
+    )
     output = input.output
     jd0 = input.state0.epoch
     # Initialize data frame
@@ -20,7 +20,7 @@ function constructoutput(
     for i in eachindex(T)
         if output.frame != :J2000
             #make and r and v, jd on the time
-            jd = JDate(SA[jd0.epoch[1], (jd0.epoch[2]+T[i]/86400.0)], jd0.system)
+            jd = JDate(SA[jd0.epoch[1], (jd0.epoch[2] + T[i] / 86400.0)], jd0.system)
             converted_state = convert_state([rf[i]; vf[i]], :J2000, output.frame, jd)
             r = converted_state[1:3]
             v = converted_state[4:6]
@@ -40,9 +40,9 @@ function _getoutputtype(type::Symbol)
     elseif type == :vx || type == :vy || type == :vz
         return Float64[]
     elseif type == :state || type == :coe
-        return Vector{SVector{6,Float64}}()
+        return Vector{SVector{6, Float64}}()
     elseif type == :pos || type == :vel
-        return Vector{SVector{3,Float64}}()
+        return Vector{SVector{3, Float64}}()
     elseif type == :sma || type == :ecc || type == :inc || type == :Ω
         return Float64[]
     elseif type == :ω || type == :M || type == :ν
@@ -70,8 +70,8 @@ function _convertoutput(rf, vf, type)
     elseif type == :vz
         return vf[3]
     elseif type == :coe || type == :sma || type == :ecc || type == :inc ||
-           type == :Ω || type == :ω || type == :M || type == :ν
-        coes = state_to_classical(rf, vf)
+            type == :Ω || type == :ω || type == :M || type == :ν
+        coes = _state_to_classical(rf, vf)
         if type == :coe
             return coes
         elseif type == :sma
@@ -92,6 +92,3 @@ function _convertoutput(rf, vf, type)
     end
 
 end
-
-# const validOutputs = [:x, :y, :z, :vx, :vy, :vz, :state, :pos, :vel, :coe,
-#     :sma, :ecc, :inc, :Ω, :ω, :M, :ν]

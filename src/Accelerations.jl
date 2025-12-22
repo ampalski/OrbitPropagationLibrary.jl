@@ -8,12 +8,12 @@ function force_model(x, p, t)
     r_sc_sun = zeros(3)
 
     if opts.third_body_sun || opts.solar_radiation_pressure
-        r_sun = sun_pos(jd)
+        r_sun = _sun_pos(jd)
         r_sc_sun = r_sun - x[1:3]
     end
 
     if opts.third_body_moon
-        r_moon = moon_pos(jd)
+        r_moon = _moon_pos(jd)
         r_sc_moon = r_moon - x[1:3]
         temp1 = norm(r_sc_moon)^3
         temp2 = norm(r_moon)^3
@@ -48,8 +48,7 @@ function force_model(x, p, t)
 end
 
 #from Montenbruck & Gill's "Satellite Orbits"
-export sun_pos
-function sun_pos(JD)
+function _sun_pos(JD)
     JDTDB = convert_jd(JD, :TDB)
     AS2RAD = 2.0 * pi / 360 / 3600
     epsilon = 23.43929111 * pi / 180.0     # Obliquity of J2000 ecliptic
@@ -124,7 +123,7 @@ end
 # end
 
 # From Montenbruck & Gill's "Satellite Orbits"
-function moon_pos(JD)
+function _moon_pos(JD)
     JDTDB = convert_jd(JD, :TDB)
     T = ((JDTDB.epoch[1] - 2451545.0) + JDTDB.epoch[2]) / 36525
     epsilon = 23.43929111 * pi / 180.0     # Obliquity of J2000 ecliptic
@@ -171,7 +170,6 @@ function moon_pos(JD)
 end
 
 
-export _srpaccel
 function _srpaccel(r, r_sun, opts)
     # Check for umbra & penumbra conditions
     r_sc_sun = r_sun - r
@@ -184,7 +182,6 @@ function _srpaccel(r, r_sun, opts)
     a_srp = -p_srp * opts.coefficient_of_radiation *
         opts.area / opts.mass * AU^2 / norm(r_sc_sun)^3 * r_sc_sun
     a_srp /= 1000 # convert to km
-    # TODO: doesn't match results on pg 606
     return shadow_val * a_srp
     # If penumbra, return partial acceleration value
 end
@@ -199,7 +196,6 @@ function _factorial_term(l, m)
     #return factorial(l - m) * δk * (2 * l + 1) / factorial((l + m)))
 end
 
-export _nonsph_accel
 function _nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
     lmax = degree
     mmax = order

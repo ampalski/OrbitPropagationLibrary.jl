@@ -19,6 +19,5 @@ const AU = 149597870.7
 const REarth = 6378.1363
 const RSun = 695700.0
 include("EGM2008_200.jl")
-export NormGravityModel_S, NormGravityModel_C
 
 end

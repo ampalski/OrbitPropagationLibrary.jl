@@ -53,9 +53,11 @@ function Rx(angle::Real)
     c = cos(angle)
     s = sin(angle)
 
-    return [+1.0 0.0 0.0;
+    return [
+        +1.0 0.0 0.0;
         0.0 +c +s;
-        0.0 -s +c]
+        0.0 -s +c
+    ]
 end
 
 function _shadowfraction(r, r_sun)
