@@ -2,7 +2,7 @@
 N = 201
 const I = vcat([fill(i,i) for i in 3:N]...)
 const J = vcat([1:i for i in 3:N]...)
-C = [
+const C = [
  -0.484165143790815e-03,
  -0.206615509074176e-09,
   0.243938357328313e-05,
@@ -20302,7 +20302,7 @@ C = [
   0.751012006100548e-09,
   0.590824206838993e-10,
 ]
-S = [
+const S = [
   0.000000000000000e+00,
   0.138441389137979e-08, 
  -0.140027370385934e-05,
@@ -40602,5 +40602,5 @@ S = [
  -0.105951851512426e-08,
  -0.128589429556450e-09,
 ]
-NormGravityModel_C = sparse(I,J,C)
-NormGravityModel_S = sparse(I,J,S)
+const NormGravityModel_C = sparse(I,J,C)
+const NormGravityModel_S = sparse(I,J,S)

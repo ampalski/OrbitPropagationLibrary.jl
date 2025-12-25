@@ -1,20 +1,20 @@
 # Will need to pass options, if not the whole input, through p
 function force_model(x, p, t)
-    accel = zeros(3)
+    accel = SA[0.0, 0, 0]
     jd0 = p[1]
     opts = p[2]
     jd = JDate(SA[jd0.epoch[1], jd0.epoch[2] + t / 86400.0], jd0.system)
-    r_sun = zeros(3)
-    r_sc_sun = zeros(3)
+    r_sun = SA[0.0, 0, 0]
+    r_sc_sun = SA[0.0, 0, 0]
 
     if opts.third_body_sun || opts.solar_radiation_pressure
         r_sun = _sun_pos(jd)
-        r_sc_sun = r_sun - x[1:3]
+        r_sc_sun = r_sun - @view x[pos_inds]
     end
 
     if opts.third_body_moon
         r_moon = _moon_pos(jd)
-        r_sc_moon = r_moon - x[1:3]
+        r_sc_moon = r_moon - @view x[pos_inds]
         temp1 = norm(r_sc_moon)^3
         temp2 = norm(r_moon)^3
         a_moon = μMOON * (r_sc_moon ./ temp1 - r_moon ./ temp2)
@@ -27,24 +27,24 @@ function force_model(x, p, t)
         accel += a_sun
     end
     if opts.solar_radiation_pressure
-        a_srp = _srpaccel(x[1:3], r_sun, opts)
+        @views a_srp = _srpaccel(x[pos_inds], r_sun, opts)
         accel += a_srp
     end
     if opts.non_spherical
-        P = mod2j200076_matrix(jd)
-        N = tod2mod76_matrix(jd)
-        R = pef2tod76_matrix(jd)
-        W = itrf2pef76_matrix(jd)
-        pos_ecef = W' * R' * N' * P' * x[1:3]
+        P = SMatrix{3, 3}(mod2j200076_matrix(jd))
+        N = SMatrix{3, 3}(tod2mod76_matrix(jd))
+        R = SMatrix{3, 3}(pef2tod76_matrix(jd))
+        W = SMatrix{3, 3}(itrf2pef76_matrix(jd))
+        pos_ecef = W' * R' * N' * P' * @view x[1:3]
         a_nonsph = _nonsph_accel(pos_ecef, opts.degree, opts.order)
         accel += P * N * R * W * a_nonsph
     end
 
-    r = norm(x[1:3])
-    a_twobody = -μ / r^3 * x[1:3]
+    r = norm(@view x[pos_inds])
+    a_twobody = -μ / r^3 * @view x[pos_inds]
     accel += a_twobody
 
-    return SA[x[4:6]...; accel...]
+    return [x[vel_inds];accel]
 end
 
 #from Montenbruck & Gill's "Satellite Orbits"
@@ -256,5 +256,5 @@ function _nonsph_accel(pos::AbstractVector, degree::Int, order::Int)
             end
         end
     end
-    return μ / REarth^2 * [ax, ay, az]
+    return μ / REarth^2 * SA[ax, ay, az]
 end

@@ -18,6 +18,8 @@ const μSUN = 1.32712428e11
 const AU = 149597870.7
 const REarth = 6378.1363
 const RSun = 695700.0
+const pos_inds = SA[1, 2, 3]
+const vel_inds = SA[4, 5, 6]
 include("EGM2008_200.jl")
 
 end

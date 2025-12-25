@@ -1,6 +1,6 @@
 name = "OrbitPropagationLibrary"
 uuid = "c20f9b96-66de-4231-bbc8-363008277063"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Andrew Palski"]
 
 [deps]
@@ -18,7 +18,7 @@ BenchmarkTools = "1.6.3"
 DataFrames = "1"
 DifferentialEquations = "7"
 LinearAlgebra = "1.11.0"
-OrbitPropagationLibrarySOFA = "0.2"
+OrbitPropagationLibrarySOFA = "0.3"
 SparseArrays = "1.12.0"
 StaticArrays = "1"
 Test = "1.11"

@@ -121,14 +121,10 @@ function propagate(input::Numerical_OplIn)
     else
         T = [totalTime]
     end
-    rf = Vector{SVector{3, Float64}}()
-    vf = Vector{SVector{3, Float64}}()
-    r = SA[input.state0.state[1:3]...]
-    v = SA[input.state0.state[4:6]...]
+    r = input.state0.state[pos_inds]
+    v = input.state0.state[vel_inds]
     if input.state0.frame != :J2000
-        converted_state = convert_state([r; v], input.state0.frame, :J2000, t0)
-        r = SA[converted_state[1:3]...]
-        v = SA[converted_state[4:6]...]
+        r, v = convert_posvel(r, v, input.state0.frame, :J2000, t0)
     end
     # for i in eachindex(T)
     #     dt = i == 1 ? T[1] : T[i] - T[i-1]
@@ -144,9 +140,12 @@ function propagate(input::Numerical_OplIn)
     # sol = solve(prob, Tsit5(), reltol=1e-12, abstol=1e-12, saveat=dt)
     sol = solve(prob, Tsit5(), reltol = 1.0e-12, abstol = 1.0e-12).(T)
     #need to test the saveat version against using the solution as a function
-    for x in sol
-        push!(rf, x[1:3])
-        push!(vf, x[4:6])
+    xn = length(sol)
+    rf = Vector{SVector{3, Float64}}(undef, xn)
+    vf = Vector{SVector{3, Float64}}(undef, xn)
+    for (ind, x) in enumerate(sol)
+        rf[ind] = x[pos_inds]
+        vf[ind] = x[vel_inds]
     end
 
     # Construct output
