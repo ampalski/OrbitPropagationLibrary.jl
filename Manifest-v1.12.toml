@@ -1217,13 +1217,13 @@ version = "1.13.3"
 deps = ["BenchmarkTools", "DataFrames", "DifferentialEquations", "LinearAlgebra", "OrbitPropagationLibrarySOFA", "SparseArrays", "StaticArrays"]
 path = "."
 uuid = "c20f9b96-66de-4231-bbc8-363008277063"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.OrbitPropagationLibrarySOFA]]
-deps = ["DataFrames", "FileIO", "JLD2", "StaticArrays"]
-git-tree-sha1 = "0695b0bae2bf319c9399c9352d5d170857605141"
+deps = ["FileIO", "JLD2", "StaticArrays"]
+git-tree-sha1 = "1e2c2f457fc227797455f03a1980dbf74e609918"
 uuid = "38b9e004-e2fa-4648-aa91-337faf7b69aa"
-version = "0.3.0"
+version = "0.3.1"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "05868e21324cede2207c6f0f466b4bfef6d5e7ee"
