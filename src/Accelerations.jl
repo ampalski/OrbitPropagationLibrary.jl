@@ -7,6 +7,15 @@ function force_model(x, p, t)
     r_sun = SA[0.0, 0, 0]
     r_sc_sun = SA[0.0, 0, 0]
 
+    if opts.non_spherical || opts.drag
+        P = SMatrix{3, 3}(mod2j200076_matrix(jd))
+        N = SMatrix{3, 3}(tod2mod76_matrix(jd))
+        R = SMatrix{3, 3}(pef2tod76_matrix(jd))
+        W = SMatrix{3, 3}(itrf2pef76_matrix(jd))
+        pos_ecef = W' * R' * N' * P' * @view x[1:3]
+
+    end
+
     if opts.third_body_sun || opts.solar_radiation_pressure
         r_sun = _sun_pos(jd)
         r_sc_sun = r_sun - @view x[pos_inds]
@@ -31,13 +40,23 @@ function force_model(x, p, t)
         accel += a_srp
     end
     if opts.non_spherical
-        P = SMatrix{3, 3}(mod2j200076_matrix(jd))
-        N = SMatrix{3, 3}(tod2mod76_matrix(jd))
-        R = SMatrix{3, 3}(pef2tod76_matrix(jd))
-        W = SMatrix{3, 3}(itrf2pef76_matrix(jd))
-        pos_ecef = W' * R' * N' * P' * @view x[1:3]
         a_nonsph = _nonsph_accel(pos_ecef, opts.degree, opts.order)
         accel += P * N * R * W * a_nonsph
+    end
+    if opts.drag
+        # V_Rel
+        vel_ecef = W' * (R' * N' * P' * x[vel_inds] - cross(ω_earth, pos_ecef))
+
+        # LLA position
+        lat, lon, alt = lla(pos_ecef)
+
+        # Density
+        ρ = getDensity(jd, lat, lon, alt)
+
+        v2 = vel_ecef' * vel_ecef
+        a_drag = -0.5 * sqrt(v2) * ρ * opts.coefficient_of_drag * opts.area /
+            opts.mass * vel_ecef * 1000
+        accel += P * N * R * W * a_drag
     end
 
     r = norm(@view x[pos_inds])
