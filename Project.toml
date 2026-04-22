@@ -1,6 +1,6 @@
 name = "OrbitPropagationLibrary"
 uuid = "c20f9b96-66de-4231-bbc8-363008277063"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Andrew Palski"]
 
 [deps]
