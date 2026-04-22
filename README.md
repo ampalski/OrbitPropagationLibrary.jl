@@ -42,8 +42,7 @@ out2 = propagate(input2)
 ```
 
 ## Future Plans
-- Additional accelerations, to include drag and tides.
+- Additional accelerations, to include relativity and tides.
 - Maneuver handling.
-- Maneuver solving: GEO stationkeeping and rendezvous currently planned.
 - Interfacing for mission optimization.
 

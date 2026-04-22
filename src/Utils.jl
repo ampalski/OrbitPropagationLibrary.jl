@@ -1,19 +1,9 @@
 function wrapto2pi(input::Float64)
-    p2 = 2 * pi
-    while input < 0
-        input += p2
-    end
-
-    return input % p2
+    return rem2pi(input, RoundDown)
 end
 
 function wraptopi(input::Float64)
-    p2 = 2 * pi
-    w = input % (p2)
-    if abs(w) > 0.5
-        w -= sign(input) * p2
-    end
-    return w
+    return rem2pi(input, RoundNearest)
 end
 
 function cross(a::AbstractVector, b::AbstractVector)
@@ -107,4 +97,22 @@ function kronecker(a::Real, b::Real)
     else
         return 0.0
     end
+end
+
+function lla(position::AbstractVector)
+    r_delta_sat = sqrt(position[1]^2 + position[2]^2)
+    lon = atand(position[2], position[1])
+    δ = atand(position[3], r_delta_sat)
+    C = 0.0
+    lat = δ
+    lat_old = 2 * lat
+    while abs(lat - lat_old) > 1.0e-8
+        lat_old = lat
+        C = REarth / sqrt(1 - e_earth^2 * sind(lat)^2)
+        lat = atand(position[3] + C * e_earth^2 * sind(lat), r_delta_sat)
+    end
+
+    h = r_delta_sat / cosd(lat) - C
+
+    return lat, lon, h
 end

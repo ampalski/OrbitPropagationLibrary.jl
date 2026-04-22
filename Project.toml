@@ -1,12 +1,13 @@
 name = "OrbitPropagationLibrary"
 uuid = "c20f9b96-66de-4231-bbc8-363008277063"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Andrew Palski"]
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OrbitPropagationLibraryNRLMSIS = "13047893-382f-4339-b745-3678b5447bed"
 OrbitPropagationLibrarySOFA = "38b9e004-e2fa-4648-aa91-337faf7b69aa"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
@@ -16,6 +17,7 @@ Aqua = "0.8.14"
 DataFrames = "1"
 DifferentialEquations = "7"
 LinearAlgebra = "1.11.0"
+OrbitPropagationLibraryNRLMSIS = "0.1.0"
 OrbitPropagationLibrarySOFA = "0.3"
 SparseArrays = "1.12.0"
 StaticArrays = "1"
