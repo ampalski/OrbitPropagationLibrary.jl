@@ -15,7 +15,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 Aqua = "0.8.14"
 DataFrames = "1"
-DifferentialEquations = "7"
+DifferentialEquations = "7, 8"
 LinearAlgebra = "1.11.0"
 OrbitPropagationLibraryNRLMSIS = "0.1.0"
 OrbitPropagationLibrarySOFA = "0.3"
